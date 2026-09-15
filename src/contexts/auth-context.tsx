@@ -1,16 +1,13 @@
-import * as SecureStore from 'expo-secure-store';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Platform } from 'react-native';
+
+import { supabase } from '@/lib/supabase';
 
 export type AuthUser = {
-  name: string;
+  id: string;
   email: string;
+  displayName: string;
   avatarInitials: string;
-};
-
-type StoredSession = {
-  user: AuthUser;
-  token: string;
 };
 
 type AuthContextValue = {
@@ -21,10 +18,19 @@ type AuthContextValue = {
   logout: () => Promise<void>;
 };
 
-const AUTH_SESSION_KEY = 'auth-session';
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function mapSupabaseUser(supabaseUser: SupabaseAuthUser): AuthUser {
+  const displayName =
+    supabaseUser.user_metadata?.full_name ?? supabaseUser.user_metadata?.name ?? supabaseUser.email!;
+  const avatarInitials = displayName
+    .split(' ')
+    .map((w: string) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  return { id: supabaseUser.id, email: supabaseUser.email!, displayName, avatarInitials };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -32,50 +38,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    (async () => {
-      // expo-secure-store no soporta web (SDK 57): en esa plataforma no se
-      // restaura ni persiste sesión, cada carga vuelve a pedir login.
-      if (Platform.OS !== 'web') {
-        const raw = await SecureStore.getItemAsync(AUTH_SESSION_KEY);
-        if (raw) {
-          const { user } = JSON.parse(raw) as StoredSession;
-          setUser(user);
-          setIsAuthenticated(true);
-        }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(mapSupabaseUser(session.user));
+        setIsAuthenticated(true);
       }
       setIsLoading(false);
-    })();
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(mapSupabaseUser(session.user));
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   async function login(email: string, password: string) {
-    if (!EMAIL_REGEX.test(email)) return { success: false, error: 'Ingresa un email válido.' };
+    if (email.trim().length === 0) return { success: false, error: 'Ingresa tu email.' };
     if (password.length === 0) return { success: false, error: 'Ingresa tu contraseña.' };
 
-    const namePart = email.split('@')[0].replace(/[._]/g, ' ');
-    const name = namePart.replace(/\b\w/g, (c) => c.toUpperCase());
-    const avatarInitials = name
-      .split(' ')
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-    const nextUser: AuthUser = { name, email, avatarInitials };
-    const token = `mock-token-${Date.now()}`;
-
-    if (Platform.OS !== 'web') {
-      await SecureStore.setItemAsync(AUTH_SESSION_KEY, JSON.stringify({ user: nextUser, token }));
-    }
-    setUser(nextUser);
-    setIsAuthenticated(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { success: false, error: error.message };
     return { success: true };
   }
 
   async function logout() {
-    if (Platform.OS !== 'web') {
-      await SecureStore.deleteItemAsync(AUTH_SESSION_KEY);
-    }
-    setUser(null);
-    setIsAuthenticated(false);
+    await supabase.auth.signOut();
   }
 
   const value: AuthContextValue = { isAuthenticated, isLoading, user, login, logout };

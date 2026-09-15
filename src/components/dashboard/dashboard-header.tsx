@@ -28,7 +28,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         </ThemedText>
       </View>
       <View style={styles.textContainer}>
-        <ThemedText type="subtitle">{user.name}</ThemedText>
+        <ThemedText type="subtitle">{user.displayName}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           {user.email}
         </ThemedText>

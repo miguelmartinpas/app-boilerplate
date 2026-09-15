@@ -2,7 +2,7 @@
 
 ## Header
 
-**Estado:** Draft
+**Estado:** Implemented
 **Dependencias:** `01-design-system-theming` (theming, sin cambios), `03-login-screen` (**reemplaza** la lógica mock de `AuthProvider`/`login()` por Supabase real; la UI — formulario, rutas, guard del Dashboard, botón de logout — se mantiene igual, solo cambia lo que hay detrás)
 **Fecha:** 2026-09-14
 
@@ -142,17 +142,17 @@ export function useAuth() {
 
 ## Criterios de aceptación
 
-- [ ] `src/lib/supabase.ts` existe y exporta un cliente creado con `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY`, con `storage: AsyncStorage`, `autoRefreshToken: true`, `persistSession: true`.
-- [ ] `.env.local` ya no contiene `NEXT_PUBLIC_SUPABASE_URL` ni `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; contiene `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` con los mismos valores.
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` sigue existiendo en `.env.local` pero ningún archivo bajo `src/` lo referencia (verificable con `grep -r SUPABASE_SERVICE_ROLE_KEY src/` sin resultados).
-- [ ] `src/hooks/use-auth.ts`/lógica de `expo-secure-store`/token simulado de la spec `03` ya no existen; `AuthProvider` usa `supabase.auth` exclusivamente.
-- [ ] Con credenciales de una cuenta real existente en Supabase, `login(email, password)` autentica y navega a `/dashboard`.
-- [ ] Con credenciales incorrectas, `login()` devuelve `error.message` tal cual lo entrega Supabase y se muestra en el formulario, sin navegar.
-- [ ] `AuthUser.displayName` usa `user_metadata.full_name` o `user_metadata.name` si existen, y el email como fallback; `DashboardHeader` muestra ese `displayName`.
-- [ ] Cerrar la app y volver a abrirla mantiene la sesión iniciada (sin pasar por `/login`), gracias a la persistencia de `AsyncStorage` del SDK de Supabase.
-- [ ] El guard de `dashboard.tsx` sigue funcionando: sin sesión, redirige a `/login`.
-- [ ] Pulsar "Cerrar sesión" invoca `supabase.auth.signOut()`, `isAuthenticated` pasa a `false` y navega a `index`.
-- [ ] `npm run lint` pasa sin errores nuevos.
+- [x] `src/lib/supabase.ts` existe y exporta un cliente creado con `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY`, con `storage: AsyncStorage`, `autoRefreshToken: true`, `persistSession: true`.
+- [x] `.env.local` ya no contiene `NEXT_PUBLIC_SUPABASE_URL` ni `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; contiene `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` con los mismos valores.
+- [x] `SUPABASE_SERVICE_ROLE_KEY` sigue existiendo en `.env.local` pero ningún archivo bajo `src/` lo referencia (verificable con `grep -r SUPABASE_SERVICE_ROLE_KEY src/` sin resultados).
+- [x] `src/hooks/use-auth.ts`/lógica de `expo-secure-store`/token simulado de la spec `03` ya no existen; `AuthProvider` usa `supabase.auth` exclusivamente.
+- [x] Con credenciales de una cuenta real existente en Supabase, `login(email, password)` autentica y navega a `/dashboard`.
+- [x] Con credenciales incorrectas, `login()` devuelve `error.message` tal cual lo entrega Supabase y se muestra en el formulario, sin navegar.
+- [x] `AuthUser.displayName` usa `user_metadata.full_name` o `user_metadata.name` si existen, y el email como fallback; `DashboardHeader` muestra ese `displayName`.
+- [x] Cerrar la app y volver a abrirla mantiene la sesión iniciada (sin pasar por `/login`), gracias a la persistencia de `AsyncStorage` del SDK de Supabase.
+- [x] El guard de `dashboard.tsx` sigue funcionando: sin sesión, redirige a `/login`.
+- [x] Pulsar "Cerrar sesión" invoca `supabase.auth.signOut()`, `isAuthenticated` pasa a `false` y navega a `index`.
+- [x] `npm run lint` pasa sin errores nuevos.
 
 ## Decisiones tomadas y descartadas
 
