@@ -2,7 +2,7 @@
 
 ## Header
 
-**Estado:** Draft
+**Estado:** Implemented
 **Dependencias:** Ninguna (primera spec del repo)
 **Fecha:** 2026-09-14
 
