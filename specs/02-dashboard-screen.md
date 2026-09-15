@@ -2,7 +2,7 @@
 
 ## Header
 
-**Estado:** Draft
+**Estado:** Implemented
 **Dependencias:** `01-design-system-theming` (usa `Colors.primary/secondary/tertiary`, `ThemedView`/`ThemedText`, `ThemeFonts`)
 **Fecha:** 2026-09-14
 
