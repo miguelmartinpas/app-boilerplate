@@ -1,9 +1,10 @@
 import { corporateTheme } from './corporate';
 import { defaultTheme } from './default';
+import { neoMiraiTheme } from './neo-mirai';
 import type { AppTheme } from './types';
 import { vibrantTheme } from './vibrant';
 
-const themes = { default: defaultTheme, corporate: corporateTheme, vibrant: vibrantTheme } as const;
+const themes = { default: defaultTheme, corporate: corporateTheme, vibrant: vibrantTheme, 'neo-mirai': neoMiraiTheme } as const;
 
 export type ThemeName = keyof typeof themes;
 

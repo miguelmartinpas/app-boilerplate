@@ -15,7 +15,7 @@ export type ThemeFontTokens = {
 };
 
 export type AppTheme = {
-  name: 'default' | 'corporate' | 'vibrant';
+  name: 'default' | 'corporate' | 'vibrant' | 'neo-mirai';
   colors: {
     light: ThemeColorTokens;
     dark: ThemeColorTokens;

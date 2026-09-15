@@ -2,7 +2,7 @@
 
 ## Header
 
-**Estado:** Draft
+**Estado:** Implemented
 **Dependencias:** `01-design-system-theming` (añade un 4º theme + corrige un color hardcodeado detectado), `02-dashboard-screen` y `03-login-screen` (se verifican/adaptan visualmente al nuevo theme, sin cambios estructurales esperados)
 **Fecha:** 2026-09-14
 
