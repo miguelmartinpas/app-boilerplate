@@ -1,8 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import type { AuthUser } from '@/hooks/use-auth';
+import { useAuth, type AuthUser } from '@/contexts/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 
 type DashboardHeaderProps = {
@@ -11,6 +12,13 @@ type DashboardHeaderProps = {
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const theme = useTheme();
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  async function handleLogout() {
+    await logout();
+    router.replace('/');
+  }
 
   return (
     <View style={styles.container}>
@@ -25,6 +33,11 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           {user.email}
         </ThemedText>
       </View>
+      <Pressable onPress={handleLogout} style={({ pressed }) => pressed && styles.pressed}>
+        <ThemedText type="link" themeColor="textSecondary">
+          Cerrar sesión
+        </ThemedText>
+      </Pressable>
     </View>
   );
 }
@@ -48,5 +61,8 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     gap: Spacing.half,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

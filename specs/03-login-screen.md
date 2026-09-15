@@ -2,7 +2,7 @@
 
 ## Header
 
-**Estado:** Draft
+**Estado:** Implemented
 **Dependencias:** `01-design-system-theming` (theming), `02-dashboard-screen` (reemplaza su `useAuth()` placeholder y es el destino tras login)
 **Fecha:** 2026-09-14
 

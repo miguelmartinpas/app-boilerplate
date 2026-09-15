@@ -1,5 +1,6 @@
 import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Platform, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedIcon } from '@/components/animated-icon';
@@ -8,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 function getDevMenuHint() {
   if (Platform.OS === 'web') {
@@ -29,6 +31,9 @@ function getDevMenuHint() {
 }
 
 export default function HomeScreen() {
+  const theme = useTheme();
+  const router = useRouter();
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -54,6 +59,18 @@ export default function HomeScreen() {
             hint={<ThemedText type="code">npm run reset-project</ThemedText>}
           />
         </ThemedView>
+
+        <Pressable
+          onPress={() => router.push('/login')}
+          style={({ pressed }) => [
+            styles.loginButton,
+            { backgroundColor: theme.primary },
+            pressed && styles.loginButtonPressed,
+          ]}>
+          <ThemedText type="smallBold" style={styles.loginButtonText}>
+            Iniciar sesión
+          </ThemedText>
+        </Pressable>
 
         {Platform.OS === 'web' && <WebBadge />}
       </SafeAreaView>
@@ -94,5 +111,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.four,
     borderRadius: Spacing.four,
+  },
+  loginButton: {
+    alignSelf: 'stretch',
+    paddingVertical: Spacing.three,
+    borderRadius: Spacing.five,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginButtonPressed: {
+    opacity: 0.7,
+  },
+  loginButtonText: {
+    color: '#ffffff',
   },
 });
