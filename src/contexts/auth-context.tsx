@@ -22,7 +22,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function mapSupabaseUser(supabaseUser: SupabaseAuthUser): AuthUser {
   const displayName =
-    supabaseUser.user_metadata?.full_name ?? supabaseUser.user_metadata?.name ?? supabaseUser.email!;
+    supabaseUser.user_metadata?.display_name ??
+    supabaseUser.user_metadata?.full_name ??
+    supabaseUser.user_metadata?.name ??
+    supabaseUser.email!;
   const avatarInitials = displayName
     .split(' ')
     .map((w: string) => w[0])

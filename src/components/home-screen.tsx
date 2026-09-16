@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import type { SFSymbol } from 'sf-symbols-typescript';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -49,18 +49,18 @@ const FEATURES: FeatureHighlight[] = [
 export function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
   const onPrimaryColor = getReadableTextColor(theme.primary);
 
-  // Logged in, Home has no session header, so its CTA doubles as the logout control.
-  const cta = isAuthenticated
-    ? { label: 'Cerrar sesión', onPress: () => logout() }
-    : { label: 'Iniciar sesión', onPress: () => router.push('/login') };
+  // Under `(app)`'s header the top inset is already consumed by that layout.
+  const safeAreaEdges: Edge[] = isAuthenticated
+    ? ['bottom', 'left', 'right']
+    : ['top', 'bottom', 'left', 'right'];
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
           <ThemedView style={styles.hero}>
             <ThemedText type="smallBold" themeColor="tertiary" style={styles.eyebrow}>
               {HERO.eyebrow}
@@ -87,17 +87,19 @@ export function HomeScreen() {
             ))}
           </View>
 
-          <Pressable
-            onPress={cta.onPress}
-            style={({ pressed }) => [
-              styles.ctaButton,
-              { backgroundColor: theme.primary },
-              pressed && styles.ctaButtonPressed,
-            ]}>
-            <ThemedText type="smallBold" style={{ color: onPrimaryColor }}>
-              {cta.label}
-            </ThemedText>
-          </Pressable>
+          {!isAuthenticated && (
+            <Pressable
+              onPress={() => router.push('/login')}
+              style={({ pressed }) => [
+                styles.ctaButton,
+                { backgroundColor: theme.primary },
+                pressed && styles.ctaButtonPressed,
+              ]}>
+              <ThemedText type="smallBold" style={{ color: onPrimaryColor }}>
+                Iniciar sesión
+              </ThemedText>
+            </Pressable>
+          )}
         </SafeAreaView>
       </ScrollView>
     </ThemedView>
