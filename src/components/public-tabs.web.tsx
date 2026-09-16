@@ -2,20 +2,14 @@ import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
 
 import { CustomTabList, TabButton } from './web-tab-list';
 
-export default function AppTabs() {
+export default function PublicTabs() {
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
-          <TabTrigger name="home" href="/home" asChild>
+          <TabTrigger name="home" href="/" asChild>
             <TabButton>Home</TabButton>
-          </TabTrigger>
-          <TabTrigger name="dashboard" href="/dashboard" asChild>
-            <TabButton>Dashboard</TabButton>
-          </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>

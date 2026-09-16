@@ -1,29 +1,21 @@
-import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useAuth, type AuthUser } from '@/contexts/auth-context';
+import { getReadableTextColor, Spacing } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 
-type DashboardHeaderProps = {
-  user: AuthUser;
-};
-
-export function DashboardHeader({ user }: DashboardHeaderProps) {
+export function SessionHeader() {
   const theme = useTheme();
-  const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const onPrimaryColor = getReadableTextColor(theme.primary);
 
-  async function handleLogout() {
-    await logout();
-    router.replace('/');
-  }
+  if (!user) return null;
 
   return (
     <View style={styles.container}>
       <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-        <ThemedText type="smallBold" style={styles.avatarText}>
+        <ThemedText type="smallBold" style={{ color: onPrimaryColor }}>
           {user.avatarInitials}
         </ThemedText>
       </View>
@@ -33,7 +25,13 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           {user.email}
         </ThemedText>
       </View>
-      <Pressable onPress={handleLogout} style={({ pressed }) => pressed && styles.pressed}>
+      {/* No navigation here: signing out flips the `(app)` guard, which sends the user back to Home. */}
+      <Pressable
+        onPress={() => logout()}
+        accessibilityRole="button"
+        accessibilityLabel="Cerrar sesión"
+        hitSlop={Spacing.two}
+        style={({ pressed }) => [styles.logoutButton, pressed && styles.pressed]}>
         <ThemedText type="link" themeColor="textSecondary">
           Cerrar sesión
         </ThemedText>
@@ -55,12 +53,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {
-    color: '#ffffff',
-  },
   textContainer: {
     flex: 1,
     gap: Spacing.half,
+  },
+  // Padding plus hitSlop lift a link-sized label to a comfortable touch target.
+  logoutButton: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.one,
   },
   pressed: {
     opacity: 0.7,

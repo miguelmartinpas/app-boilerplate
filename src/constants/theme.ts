@@ -50,3 +50,22 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+function relativeLuminance(hex: string): number {
+  const channels = [0, 2, 4].map((i) => parseInt(hex.slice(i + 1, i + 3), 16) / 255);
+  const [r, g, b] = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(luminanceA: number, luminanceB: number): number {
+  const [lighter, darker] = luminanceA > luminanceB ? [luminanceA, luminanceB] : [luminanceB, luminanceA];
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Some theme `primary` colors are too light for white text to hit WCAG contrast; pick whichever of black/white contrasts more against it.
+export function getReadableTextColor(backgroundHex: string): string {
+  const backgroundLuminance = relativeLuminance(backgroundHex);
+  const contrastWithBlack = contrastRatio(backgroundLuminance, 0);
+  const contrastWithWhite = contrastRatio(backgroundLuminance, 1);
+  return contrastWithBlack > contrastWithWhite ? '#000000' : '#ffffff';
+}

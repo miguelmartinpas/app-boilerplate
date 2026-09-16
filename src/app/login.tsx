@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { getReadableTextColor, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -28,35 +28,21 @@ type FocusedField = 'email' | 'password' | null;
 
 export default function LoginScreen() {
   const theme = useTheme();
+  const onPrimaryColor = getReadableTextColor(theme.primary);
   const isDark = useColorScheme() === 'dark';
   const router = useRouter();
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { login } = useAuth();
   const [form, setForm] = useState<LoginFormState>(INITIAL_FORM_STATE);
   const [focusedField, setFocusedField] = useState<FocusedField>(null);
   const passwordRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.replace('/dashboard');
-    }
-  }, [isLoading, isAuthenticated, router]);
-
+  // No navigation on success: the `(app)` guard takes over as soon as the session exists.
   async function handleSubmit() {
     setForm((prev) => ({ ...prev, isSubmitting: true, error: null }));
     const result = await login(form.email, form.password);
     if (!result.success) {
       setForm((prev) => ({ ...prev, isSubmitting: false, error: result.error ?? null }));
-      return;
     }
-    router.replace('/dashboard');
-  }
-
-  if (isLoading || isAuthenticated) {
-    return (
-      <ThemedView style={[styles.container, styles.centered]}>
-        <ActivityIndicator color={theme.primary} size="large" />
-      </ThemedView>
-    );
   }
 
   const errorColor = isDark ? '#FF8080' : '#C42B2B';
@@ -132,22 +118,44 @@ export default function LoginScreen() {
             </ThemedText>
           )}
 
-          <Pressable
-            onPress={handleSubmit}
-            disabled={form.isSubmitting}
-            style={({ pressed }) => [
-              styles.submitButton,
-              { backgroundColor: theme.primary },
-              (pressed || form.isSubmitting) && styles.submitButtonPressed,
-            ]}>
-            {form.isSubmitting ? (
-              <ActivityIndicator color="#ffffff" size="small" />
-            ) : (
-              <ThemedText type="smallBold" style={styles.submitButtonText}>
-                Iniciar sesión
+          <ThemedView style={styles.actions}>
+            <Pressable
+              onPress={handleSubmit}
+              disabled={form.isSubmitting}
+              accessibilityRole="button"
+              accessibilityLabel="Iniciar sesión"
+              accessibilityState={{ disabled: form.isSubmitting, busy: form.isSubmitting }}
+              style={({ pressed }) => [
+                styles.submitButton,
+                { backgroundColor: theme.primary },
+                (pressed || form.isSubmitting) && styles.submitButtonPressed,
+              ]}>
+              {form.isSubmitting ? (
+                <ActivityIndicator color={onPrimaryColor} size="small" />
+              ) : (
+                <ThemedText type="smallBold" style={{ color: onPrimaryColor }}>
+                  Iniciar sesión
+                </ThemedText>
+              )}
+            </Pressable>
+
+            {/* Always `replace`: reaching /login by deep link or reload leaves no history to go back to. */}
+            <Pressable
+              onPress={() => router.replace('/')}
+              disabled={form.isSubmitting}
+              accessibilityRole="button"
+              accessibilityLabel="Cancelar y volver a Home"
+              accessibilityState={{ disabled: form.isSubmitting }}
+              style={({ pressed }) => [
+                styles.cancelButton,
+                pressed && styles.cancelButtonPressed,
+                form.isSubmitting && styles.cancelButtonDisabled,
+              ]}>
+              <ThemedText type="smallBold" themeColor="textSecondary">
+                Cancelar
               </ThemedText>
-            )}
-          </Pressable>
+            </Pressable>
+          </ThemedView>
         </ThemedView>
       </SafeAreaView>
     </ThemedView>
@@ -157,10 +165,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   safeArea: {
     flex: 1,
@@ -204,7 +208,22 @@ const styles = StyleSheet.create({
   submitButtonPressed: {
     opacity: 0.7,
   },
-  submitButtonText: {
-    color: '#ffffff',
+  // The two buttons are one decision, so they sit tighter than the card's own `gap`.
+  actions: {
+    gap: Spacing.two,
+    backgroundColor: 'transparent',
+  },
+  cancelButton: {
+    borderRadius: Spacing.five,
+    paddingVertical: Spacing.three,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonPressed: {
+    opacity: 0.7,
+  },
+  cancelButtonDisabled: {
+    opacity: 0.4,
   },
 });

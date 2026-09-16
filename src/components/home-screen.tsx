@@ -6,30 +6,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing, ThemeFonts } from '@/constants/theme';
+import {
+  BottomTabInset,
+  getReadableTextColor,
+  MaxContentWidth,
+  Spacing,
+  ThemeFonts,
+} from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 
 type HeroContent = { eyebrow: string; title: string; subtitle: string };
 type FeatureHighlight = { id: string; title: string; description: string; icon: string };
-
-function relativeLuminance(hex: string): number {
-  const channels = [0, 2, 4].map((i) => parseInt(hex.slice(i + 1, i + 3), 16) / 255);
-  const [r, g, b] = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrastRatio(luminanceA: number, luminanceB: number): number {
-  const [lighter, darker] = luminanceA > luminanceB ? [luminanceA, luminanceB] : [luminanceB, luminanceA];
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-// Some theme `primary` colors are too light for white text to hit WCAG contrast; pick whichever of black/white contrasts more against it.
-function getReadableTextColor(backgroundHex: string): string {
-  const backgroundLuminance = relativeLuminance(backgroundHex);
-  const contrastWithBlack = contrastRatio(backgroundLuminance, 0);
-  const contrastWithWhite = contrastRatio(backgroundLuminance, 1);
-  return contrastWithBlack > contrastWithWhite ? '#000000' : '#ffffff';
-}
 
 const HERO: HeroContent = {
   eyebrow: 'App Boilerplate',
@@ -58,10 +46,16 @@ const FEATURES: FeatureHighlight[] = [
   },
 ];
 
-export default function HomeScreen() {
+export function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { isAuthenticated, logout } = useAuth();
   const onPrimaryColor = getReadableTextColor(theme.primary);
+
+  // Logged in, Home has no session header, so its CTA doubles as the logout control.
+  const cta = isAuthenticated
+    ? { label: 'Cerrar sesión', onPress: () => logout() }
+    : { label: 'Iniciar sesión', onPress: () => router.push('/login') };
 
   return (
     <ThemedView style={styles.container}>
@@ -94,14 +88,14 @@ export default function HomeScreen() {
           </View>
 
           <Pressable
-            onPress={() => router.push('/login')}
+            onPress={cta.onPress}
             style={({ pressed }) => [
-              styles.loginButton,
+              styles.ctaButton,
               { backgroundColor: theme.primary },
-              pressed && styles.loginButtonPressed,
+              pressed && styles.ctaButtonPressed,
             ]}>
             <ThemedText type="smallBold" style={{ color: onPrimaryColor }}>
-              Iniciar sesión
+              {cta.label}
             </ThemedText>
           </Pressable>
         </SafeAreaView>
@@ -164,14 +158,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loginButton: {
+  ctaButton: {
     alignSelf: 'stretch',
     paddingVertical: Spacing.three,
     borderRadius: Spacing.five,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loginButtonPressed: {
+  ctaButtonPressed: {
     opacity: 0.7,
   },
 });
